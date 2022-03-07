@@ -48,16 +48,8 @@ function complexity(filePath, builders)
 	{
 		// File level calculations
 		// 1. Strings
-		if( node.type == "Literal" && typeof node.value == "string" )
-		{
-			fileBuilder.Strings++;
-		}
 
 		// 2. Packages
-		if( node.type == "CallExpression" && node.callee.type == "Identifier" && node.callee.name == "require")
-		{
-			fileBuilder.ImportCount++;			
-		}
 
 		if (node.type === 'FunctionDeclaration') 
 		{
