@@ -48,8 +48,15 @@ function complexity(filePath, builders)
 	{
 		// File level calculations
 		// 1. Strings
+		if(node.type === "Literal" && typeof node.value === "string") {
+			fileBuilder.Strings++;
+		}
 
 		// 2. Packages
+
+		if(node.type === "CallExpression" && node.callee.name === "require") {
+			fileBuilder.ImportCount++;
+		}
 
 		if (node.type === 'FunctionDeclaration') 
 		{
@@ -59,14 +66,41 @@ function complexity(filePath, builders)
 			builder.StartLine    = node.loc.start.line;
 			// Calculate function level properties.
 			// 3. Parameters
+			builder.ParameterCount = node.params.length;
 
 			// 4. Method Length
+			builder.Length = node.body.body.length;
 
 			// With new visitor(s)...
 			// 5. CyclomaticComplexity
+			traverseWithParents(node, function(child) {
+				if(isDecision(child)) {
+					builder.SimpleCyclomaticComplexity++;
+				}
+			})
 
 			// 6. Halstead
 
+			// Max Depth
+/*			var originalNode = node;
+			traverseWithParents(node, function(child) {
+				if(typeof child.nestingDepthCounter === "undefined") {
+					child.nestingDepthCounter = 0;
+				}
+				if(child.type === "IfStatement") {
+
+					child.nestingDepthCounter = child.nestingDepthCounter + 1;
+					if(child.nestingDepthCounter > builder.MaxNestingDepth) {
+						builder.MaxNestingDepth = child.nestingDepthCounter;
+					}
+				}
+				if(typeof child.parent !== "undefined" && !(child === originalNode) && Array.isArray(child.parent)) {
+					console.log(child.parent);
+					child.parent.forEach((element, key) => {
+						element.nestingDepthCounter = child.nestingDepthCounter;
+					});
+				}
+			})*/
 
 
 			builders[builder.FunctionName] = builder;
@@ -126,9 +160,11 @@ class FunctionBuilder
 		console.log(
 chalk`{blue.underline ${this.FunctionName}}(): at line #${this.StartLine}
 Parameters: ${this.ParameterCount}\tLength: ${this.Length}
-Cyclomatic: ${this.SimpleCyclomaticComplexity}\tHalstead: ${this.Halstead}
-MaxDepth: ${this.MaxNestingDepth}\tMaxConditions: ${this.MaxConditions}\n`
+Cyclomatic: ${this.SimpleCyclomaticComplexity}\n`
 );
+		//\tMaxConditions: ${this.MaxConditions}
+		//Halstead: ${this.Halstead}
+		// MaxDepth: ${this.MaxNestingDepth}\t
 	}
 };
 
